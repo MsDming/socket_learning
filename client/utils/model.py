@@ -10,9 +10,15 @@ class User:
 
 
 class Channel:
-    def __init__(self, channelIndex, channelName):
-        self.channelIndex = channelIndex
+    def __init__(self, channelIndex, channelName: str):
+        self.channelIndex = str(channelIndex)
         self.channelName = channelName
+
+    def to_dict_str(self):
+        return {
+            'channelIndex':self.channelIndex,
+            'channelName':self.channelName
+        }
 
 
 class Channel_QListWidgetItem(QListWidgetItem):

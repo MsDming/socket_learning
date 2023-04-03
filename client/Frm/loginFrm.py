@@ -2,11 +2,9 @@ import sys
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtNetwork import QTcpSocket
-
+from PyQt5.QtWidgets import QApplication, QWidget
 from client.Frm.hallFrm import HallFrm
 from client.ui_py.ui_login import Ui_login
-from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
-from client.Frm.clientFrm import ClientFrm
 from client.utils.model import User
 
 
