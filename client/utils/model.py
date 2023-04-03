@@ -1,0 +1,30 @@
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QListWidgetItem, QWidget, QVBoxLayout, QLabel, QHBoxLayout
+
+
+class User:
+    def __init__(self, account, passwd, nickName):
+        self.account = account
+        self.passwd = passwd
+        self.nickName = nickName
+
+
+class Channel:
+    def __init__(self, channelIndex, channelName):
+        self.channelIndex = channelIndex
+        self.channelName = channelName
+
+
+class Channel_QListWidgetItem(QListWidgetItem):
+    def __init__(self, channel: Channel):
+        super().__init__()
+        self.channel = channel
+        self.widget = QWidget()
+        hbox = QHBoxLayout()
+        lb_channelIcon = QLabel()
+        lb_channelIcon.setPixmap(QPixmap=QPixmap('../images/test.jpg').scaled(40, 40))
+        lb_channelName = QLabel(self.channel.channelName)
+        hbox.addItem(lb_channelIcon)
+        hbox.addItem(lb_channelName)
+        self.widget.setLayout(hbox)
+        self.setSizeHint(self.widget.sizeHint())
