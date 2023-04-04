@@ -1,15 +1,19 @@
 import sys
-
 from PyQt5.QtNetwork import QTcpSocket
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAbstractItemView
 from client.ui_py.ui_hall import Ui_hall
 import ast
-import socket
+
+from client.utils.model import Channel, Channel_QListWidgetItem
 
 
 class HallFrm(QMainWindow, Ui_hall):
     def __init__(self):
         super().__init__()
+        self.setupUi(self)
+        self.listWidget_channels.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.listWidget_channels.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.channelList = None
         self.tcpSkt = None
         self.user = None
         self.setupUi(self)
@@ -20,6 +24,12 @@ class HallFrm(QMainWindow, Ui_hall):
         self.tcpSkt.write(data.encode('utf-8'))
         self.tcpSkt.readyRead.connect(self.read_channels_from_server)
 
+    def init_channel_view(self):
+        for i in self.channelList:
+            item = Channel_QListWidgetItem(Channel(i['channelIndex'], i['channelName']))
+            self.listWidget_channels.addItem(item)
+            self.listWidget_channels.setItemWidget(item, item.widget)
+
     def get_user_from_parent(self, user):
         self.user = user
         self.setWindowTitle(self.user.nickName)
@@ -27,12 +37,9 @@ class HallFrm(QMainWindow, Ui_hall):
     def read_channels_from_server(self):
         recvData = self.tcpSkt.read(1024).decode('utf-8')
         recvData = ast.literal_eval(recvData)
-        print(type(recvData))
-        print(recvData)
-        # self.tcpSkt.close()
-
-    # def __del__(self):
-    #     self.tcpSkt.close()
+        self.channelList = recvData
+        # self.tcpSkt.disconnectFromHost()
+        self.init_channel_view()
 
 
 if __name__ == '__main__':
