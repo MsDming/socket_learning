@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QWidget
-from client.Frm.hallFrm import HallFrm
+from client.windows.hallWindow import HallFrm
 from client.ui_py.ui_login import Ui_login
 from client.utils.model import User
 
@@ -13,6 +13,7 @@ class LoginMw(QWidget, Ui_login):
 
     def __init__(self):
         super().__init__()
+        self.tcpSkt = None
         self.setupUi(self)
         self.connect_signals_slots()
         self.show()

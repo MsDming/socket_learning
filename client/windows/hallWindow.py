@@ -23,6 +23,7 @@ class HallFrm(QMainWindow, Ui_hall):
         data = data.__str__()
         self.tcpSkt.write(data.encode('utf-8'))
         self.tcpSkt.readyRead.connect(self.read_channels_from_server)
+        self.listWidget_channels.itemDoubleClicked.connect(self.open_a_channel)
 
     def init_channel_view(self):
         for i in self.channelList:
@@ -40,6 +41,10 @@ class HallFrm(QMainWindow, Ui_hall):
         self.channelList = recvData
         # self.tcpSkt.disconnectFromHost()
         self.init_channel_view()
+        self.tcpSkt.readyRead.disconnect(self.read_channels_from_server)
+
+    def openChatWindow(self):
+        global chatWindow
 
 
 if __name__ == '__main__':
