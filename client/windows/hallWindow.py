@@ -19,11 +19,13 @@ class HallFrm(QMainWindow, Ui_hall):
         self.setupUi(self)
         self.tcpSkt = QTcpSocket(parent=self)
         self.tcpSkt.connectToHost('localhost', 5000)
+        print(self.tcpSkt.socketDescriptor())
         data = {'type': 'channels'}
         data = data.__str__()
         self.tcpSkt.write(data.encode('utf-8'))
+        print('发送获取channels请求')
         self.tcpSkt.readyRead.connect(self.read_channels_from_server)
-        self.listWidget_channels.itemDoubleClicked.connect(self.open_a_channel)
+        self.listWidget_channels.itemDoubleClicked.connect(self.openChatWindow)
 
     def init_channel_view(self):
         for i in self.channelList:

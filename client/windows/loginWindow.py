@@ -1,3 +1,4 @@
+import ast
 import sys
 
 from PyQt5.QtCore import pyqtSignal
@@ -15,37 +16,41 @@ class LoginMw(QWidget, Ui_login):
         super().__init__()
         self.tcpSkt = None
         self.setupUi(self)
-        self.connect_signals_slots()
-        self.show()
-
-    def initSocket(self):
         self.tcpSkt = QTcpSocket(self)
         self.tcpSkt.connectToHost('localhost', 5000)
-
-    def connect_signals_slots(self):
         self.pushButton_login.clicked.connect(self.login)
         self.pushButton_register.clicked.connect(self.register)
-        # self.signalUser.connect(HallFrm.get_user_from_parent)
+        self.show()
 
     def login(self):
-        self.label_loginFailed.setText("")
+        self.label_loginFailed.clear()
         account = self.lineEdit_account.text()
-        passwd = self.lineEdit_password.text()
+        password = self.lineEdit_password.text()
         print("input account={}".format(account))
-        print("input passwd={}".format(passwd))
-
-        if (account, passwd) == ('root', '111111'):
+        print("input passwd={}".format(password))
+        loginRequest = {"type": "login", "account": account, "password": password}.__str__()
+        self.tcpSkt.write(loginRequest.encode('utf-8'))
+        self.tcpSkt.waitForReadyRead()
+        loginResponse = ast.literal_eval(self.tcpSkt.read(1024).decode('utf-8'))
+        loginSuccess = loginResponse["loginSuccess"]
+        assert type(loginSuccess) == bool
+        if loginSuccess:
             global hallWindow
             hallWindow = HallFrm()
             self.signalUser.connect(hallWindow.get_user_from_parent)
-            self.signalUser.emit(User('root', '111111', 'nickname'))
+            self.signalUser.emit(User(account, password, loginResponse["nickname"]))
             hallWindow.show()
+            self.tcpSkt.close()
             self.close()
         else:
             self.label_loginFailed.setText("账户或密码输入错误，请重试")
 
     def register(self):
         pass
+
+    def __del__(self):
+        self.tcpSkt.close()
+        super().__del__()
 
 
 if __name__ == '__main__':

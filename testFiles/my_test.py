@@ -27,7 +27,12 @@ class TestWidget(QWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    testWidget = TestWidget()
-
-    app.exec()
+    # app = QApplication(sys.argv)
+    # testWidget = TestWidget()
+    #
+    # app.exec()
+    test = {'loginSuccess': True, 'nickName': '飞翔的企鹅'}.__str__()
+    print(type(test))
+    test=ast.literal_eval(test)
+    print(test['loginSuccess'])
+    print(type(test['loginSuccess']))
