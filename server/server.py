@@ -1,7 +1,7 @@
 import socketserver
 import ast
 
-from client.utils.model import Channel
+from client.utils.models import Channel
 
 IP = "localhost"
 PORT = 5000
@@ -16,7 +16,7 @@ class MyHandler(socketserver.BaseRequestHandler):
             print(111)
             requestType = requestData['type']
             if requestType == 'channels':
-                res = [Channel(0, '频道1').to_dict_str(), Channel(0, '频道2').to_dict_str()]
+                res = [Channel(0, '频道1').to_dict(), Channel(0, '频道2').to_dict()]
                 self.request.sendall(res.__str__().encode('utf-8'))
             elif requestType == 'login':
                 account, password = requestData['account'], requestData['password']

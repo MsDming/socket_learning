@@ -3,21 +3,21 @@ from PyQt5.QtWidgets import QListWidgetItem, QWidget, QVBoxLayout, QLabel, QHBox
 
 
 class User:
-    def __init__(self, account, passwd, nickName):
+    def __init__(self, account, passwd, nickname):
         self.account = account
-        self.passwd = passwd
-        self.nickName = nickName
+        self.password = passwd
+        self.nickname = nickname
 
 
 class Channel:
     def __init__(self, channelIndex, channelName: str):
-        self.channelIndex = str(channelIndex)
+        self.channelIndex = int(channelIndex)
         self.channelName = channelName
 
-    def to_dict_str(self):
+    def to_dict(self):
         return {
-            'channelIndex':self.channelIndex,
-            'channelName':self.channelName
+            'channelIndex': self.channelIndex,
+            'channelName': self.channelName
         }
 
 
@@ -28,7 +28,8 @@ class Channel_QListWidgetItem(QListWidgetItem):
         self.widget = QWidget()
         hbox = QHBoxLayout()
         lb_channelIcon = QLabel()
-        lb_channelIcon.setPixmap(QPixmap('D:\\Study\\计算机网络\\socket_learning\\client\\images\\test.jpg',).scaled(40, 40))
+        lb_channelIcon.setPixmap(
+            QPixmap('D:\\Study\\计算机网络\\socket_learning\\client\\images\\test.jpg', ).scaled(40, 40))
         lb_channelName = QLabel(self.channel.channelName)
         hbox.addWidget(lb_channelIcon)
         hbox.addWidget(lb_channelName)

@@ -1,12 +1,12 @@
 import ast
 import sys
-
+sys.path.append(r'D:\Study\计算机网络\socket_learning')
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QWidget
 from client.windows.hallWindow import HallFrm
 from client.ui_py.ui_login import Ui_login
-from client.utils.model import User
+from client.utils.models import User
 
 
 class LoginMw(QWidget, Ui_login):
@@ -40,17 +40,14 @@ class LoginMw(QWidget, Ui_login):
             self.signalUser.connect(hallWindow.get_user_from_parent)
             self.signalUser.emit(User(account, password, loginResponse["nickname"]))
             hallWindow.show()
-            self.tcpSkt.close()
+            self.tcpSkt.disconnectFromHost()
             self.close()
+            self.deleteLater()
         else:
             self.label_loginFailed.setText("账户或密码输入错误，请重试")
 
     def register(self):
         pass
-
-    def __del__(self):
-        self.tcpSkt.close()
-        super().__del__()
 
 
 if __name__ == '__main__':

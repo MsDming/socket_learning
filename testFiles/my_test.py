@@ -1,38 +1,46 @@
 import ast
+import base64
 import sys
+import urllib.request
 
+import redis
+import pymysql
 from PyQt5.QtNetwork import QTcpSocket
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication, QTextEdit, QVBoxLayout, QPushButton
+
+from client.utils.models import User
 
 
 class TestWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.tcpSkt = QTcpSocket(self)
-        self.tcpSkt.connectToHost('localhost', 5000)
-        self.tcpSkt.readyRead.connect(self.recv_test)
-        data = {'type': 'channels'}
-        data = data.__str__()
-        self.tcpSkt.write(data.encode('utf-8'))
-
-    def recv_test(self):
-        print("recvFuc")
-        recvData = self.tcpSkt.read(1024).decode('utf-8')
-        recvData = ast.literal_eval(recvData)
-        print(recvData)
-        print(type(recvData))
-
-    def __del__(self):
-        self.tcpSkt.close()
 
 
 if __name__ == '__main__':
-    # app = QApplication(sys.argv)
-    # testWidget = TestWidget()
-    #
-    # app.exec()
-    test = {'loginSuccess': True, 'nickName': '飞翔的企鹅'}.__str__()
-    print(type(test))
-    test=ast.literal_eval(test)
-    print(test['loginSuccess'])
-    print(type(test['loginSuccess']))
+    # redisPool = redis.ConnectionPool(host='47.113.229.66', port=6379)
+    # r = redis.Redis(connection_pool=redisPool)
+    # user = User('10001', '111111', '飞翔的企鹅')
+    # mysql = pymysql.connect(host="47.113.229.66", port=3306, user='root', password='111111', database='pysocket')
+    # cursor = mysql.cursor()
+    # sql = """select * from channel_info"""
+    # try:
+    #     execStatus = cursor.execute(sql)
+    #     result = cursor.fetchall()
+    #     mysql.commit()
+    #     print(result)
+    #     print(type(result))
+    #     print(len(result))
+    #     result = list(result)
+    #     print(result)
+    #     # print(result[2])
+    # except Exception as e:
+    #     mysql.rollback()
+    #     print(e)
+    # cursor.close()
+    # print(mysql.ping(True))
+    # mysql.close()
+    with urllib.request.urlopen(url='file:///C:\\Users\\Zrp\\Documents\\Tencent Files\\1346650303\\Image\\Group2\\{Z\\_0\\{'
+                                    'Z_0EM8~4AYLL1@P{''`N(JJ3.jpg') as f:
+        imgByte = f.read()
+        imgBase64 = base64.b64encode(imgByte).decode('utf-8')
+        print(imgBase64)
