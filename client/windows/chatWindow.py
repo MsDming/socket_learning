@@ -5,6 +5,7 @@ import time
 import urllib.request
 import sys
 
+from PyQt5.QtGui import QTextCursor
 
 sys.path.append(r'D:\Study\计算机网络\socket_learning')
 from PyQt5.QtNetwork import QTcpSocket
@@ -40,7 +41,7 @@ class ChatWindow(QWidget, Ui_chatWindow):
     def send_message(self):
         # 获取时间戳
         sendTimeStamp = time.time()
-        self.textBrowser_show.append(
+        self.textBrowser_show.textCursor().insertText(
             "[{} {}]\n".format(self.user.nickname, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(sendTimeStamp))))
         # 内容转html
         htmlMsg = self.textEdit_input.toHtml()
@@ -62,17 +63,19 @@ class ChatWindow(QWidget, Ui_chatWindow):
             requestData = {"type": "sendHtmlMsg", "channelIndex": self.channel.channelIndex,
                            "senderAccount": self.user.account, 'inputHtmlMsg': htmlMsg,
                            'sendTimeStamp': sendTimeStamp, 'senderNickname': self.user.nickname}.__str__()
+            print(f"requestData: {requestData}")
             self.tcpSkt.write(requestData.encode('utf-8'))
             self.textBrowser_show.textCursor().insertHtml(htmlMsg)
-            self.textBrowser_show.textCursor().insertHtml('<br>')
+            self.textBrowser_show.textCursor().insertHtml('<br><br>')
             self.textEdit_input.clear()
+            self.textBrowser_show.moveCursor(QTextCursor.End)
         except Exception as e:
             print(e)
 
     def recv_msg(self):
         try:
             tcpSkt = self.sender()
-            data = tcpSkt.read(1024).decode('utf-8')
+            data = tcpSkt.read(1024 * 1024).decode('utf-8')
             recvDict = ast.literal_eval(data)
             resType = recvDict["type"]
             if resType == "chatLogs":
@@ -81,10 +84,10 @@ class ChatWindow(QWidget, Ui_chatWindow):
                 sendTimeStamp = recvDict["sendTimeStamp"]
                 senderNickname = recvDict['senderNickname']
                 htmlMsg = recvDict['inputHtmlMsg']
-                self.textBrowser_show.append(
+                self.textBrowser_show.textCursor().insertText(
                     "[{} {}]\n".format(senderNickname,
                                        time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(sendTimeStamp))))
                 self.textBrowser_show.insertHtml(htmlMsg)
-                self.textBrowser_show.insertHtml("<br>")
+                self.textBrowser_show.insertHtml("<br><br>")
         except Exception as e:
             print(e)

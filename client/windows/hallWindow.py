@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append(r'D:\Study\计算机网络\socket_learning')
 from PyQt5.QtCore import pyqtSignal, QThreadPool
 from PyQt5.QtGui import QCloseEvent
@@ -81,6 +82,5 @@ class HallFrm(QMainWindow, Ui_hall):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     hallFrm = HallFrm()
-
     hallFrm.show()
     app.exec()

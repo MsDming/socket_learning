@@ -1,5 +1,6 @@
 import ast
 import sys
+
 sys.path.append(r'D:\Study\计算机网络\socket_learning')
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtNetwork import QTcpSocket
@@ -23,13 +24,11 @@ class LoginMw(QWidget, Ui_login):
         self.show()
 
     def login(self):
-        self.label_loginFailed.clear()
+        self.label_loginFailed.setText("")
         account = self.lineEdit_account.text()
         password = self.lineEdit_password.text()
-        print("input account={}".format(account))
-        print("input passwd={}".format(password))
         loginRequest = {"type": "login", "account": account, "password": password}.__str__()
-        self.tcpSkt.write(loginRequest.encode('utf-8'))
+        self.tcpSkt.write(loginRequest.encode('utf-8'))  # 发起登录请求
         self.tcpSkt.waitForReadyRead()
         loginResponse = ast.literal_eval(self.tcpSkt.read(1024).decode('utf-8'))
         loginSuccess = loginResponse["loginSuccess"]
@@ -38,7 +37,7 @@ class LoginMw(QWidget, Ui_login):
             global hallWindow
             hallWindow = HallFrm()
             self.signalUser.connect(hallWindow.get_user_from_parent)
-            self.signalUser.emit(User(account, password, loginResponse["nickname"]))
+            self.signalUser.emit(User(account, password, loginResponse["nickname"]))  # 把User信息传递给子页面
             hallWindow.show()
             self.tcpSkt.disconnectFromHost()
             self.close()
@@ -51,6 +50,7 @@ class LoginMw(QWidget, Ui_login):
 
 
 if __name__ == '__main__':
+    BUFF_SIZE = 1024 * 1024
     IP = "localhost"
     PORT = 5000
     ADDR = (IP, PORT)

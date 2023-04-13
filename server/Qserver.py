@@ -10,13 +10,13 @@ class MyServer(QTcpServer):
     def __init__(self):
         super().__init__()
         self.db = pymysql.connect(host="47.113.229.66", port=3306, user='root', password='111111', database='pysocket')
-        self.channelList = []
-        self.allClientSkts = []
+        self.channelList = []  # 频道列表，item类型为Channel
+        self.allClientSkts = []  # 存储所有连接到的socket，为了保持socket不被释放
         self.load_channels_list()
-        self.clientLsEachChannel = [[] for i in range(len(self.channelList) + 1)]
+        self.clientLsEachChannel = [[] for i in range(len(self.channelList) + 1)]  # 按频道存储每个来自chatWindow的socket
         self.listen(QHostAddress.LocalHost, port=5000)
 
-    def incomingConnection(self, socketDescriptor):
+    def incomingConnection(self, socketDescriptor):  # 收到新的连接请求
         try:
             clientSkt = QTcpSocket()
             clientSkt.setSocketDescriptor(socketDescriptor)
@@ -77,7 +77,7 @@ class MyServer(QTcpServer):
             print("---------------------------------------------------------------------")
             self.db.ping(True)
             tcpSkt = self.sender()
-            msg = tcpSkt.read(1024).decode('utf-8')
+            msg = tcpSkt.read(BUFF_SIZE).decode('utf-8')
             requestDict = ast.literal_eval(msg)
             assert type(requestDict) == dict
             requestType = requestDict["type"]
@@ -112,7 +112,7 @@ class MyServer(QTcpServer):
 
 
 if __name__ == '__main__':
+    BUFF_SIZE = 1024 * 1024
     app = QApplication(sys.argv)
-
     server = MyServer()
     app.exec()
