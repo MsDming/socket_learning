@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QListWidgetItem, QWidget, QVBoxLayout, QLabel, QHBoxLayout
+from PyQt5.QtWidgets import QListWidgetItem, QWidget, QVBoxLayout, QLabel, QHBoxLayout, QTextBrowser
 
 
 class User:
@@ -29,9 +29,21 @@ class Channel_QListWidgetItem(QListWidgetItem):
         hbox = QHBoxLayout()
         lb_channelIcon = QLabel()
         lb_channelIcon.setPixmap(
-            QPixmap('D:\\Study\\计算机网络\\socket_learning\\client\\images\\test.jpg', ).scaled(40, 40))
+            QPixmap('D:\\Study\\计算机网络\\socket_learning\\client\\images\\test.jpg').scaled(40, 40))
         lb_channelName = QLabel(self.channel.channelName)
         hbox.addWidget(lb_channelIcon)
         hbox.addWidget(lb_channelName)
         self.widget.setLayout(hbox)
+        self.setSizeHint(self.widget.sizeHint())
+
+
+class html_QListWidgetItem(QListWidgetItem):
+    def __init__(self, htmlMsg: str):
+        super().__init__()
+        self.widget = QWidget(self)
+        vbox = QVBoxLayout()
+        textBrowser = QTextBrowser(self.widget)
+        textBrowser.textCursor().insertHtml(htmlMsg)
+        vbox.addWidget(textBrowser)
+        self.widget.setLayout(vbox)
         self.setSizeHint(self.widget.sizeHint())

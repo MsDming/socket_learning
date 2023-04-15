@@ -1,6 +1,8 @@
 import ast
+import base64
 import sys
 import pymysql
+from PyQt5.QtCore import QFile, QIODevice
 from PyQt5.QtNetwork import QTcpServer, QHostAddress, QTcpSocket
 from PyQt5.QtWidgets import QApplication
 from client.utils.models import Channel
@@ -29,7 +31,7 @@ class MyServer(QTcpServer):
 
     def load_channels_list(self):
         with self.db.cursor() as cursor:
-            sql_get_channels = """select * from channel_info"""
+            sql_get_channels = """select * from channel"""
             cursor.execute(sql_get_channels)
             res = cursor.fetchall()
             self.channelList = [Channel(i[0], i[1]) for i in res]
@@ -47,7 +49,7 @@ class MyServer(QTcpServer):
     def handle_recv_msg(self):
         def handle_login():
             with self.db.cursor() as cursor:
-                sql_search_user = """select * from user_info where account={}""".format(account)
+                sql_search_user = """select * from user where account={}""".format(account)
                 print("SQL:{}".format(sql_search_user))
                 resNums = cursor.execute(sql_search_user)
                 # 不存在该用户
@@ -73,12 +75,30 @@ class MyServer(QTcpServer):
                 if i != tcpSkt:
                     i.write(msgToBroadcast.encode('utf-8'))
 
+        def handle_sendFile():
+            tcpSkt.waitForReadyRead()
+            fileData = tcpSkt.read(BUFF_SIZE)
+            while len(fileData) < fileSize:
+                tcpSkt.waitForReadyRead()
+                fileData += tcpSkt.read(BUFF_SIZE)
+            savedFile = QFile(f"./tempFiles/channel{channelIndex}/{fileName}")
+            savedFile.open(QIODevice.WriteOnly)
+            savedFile.write(fileData)
+            savedFile.close()
+            broadcastFile = {"type": "broadcastFile", "sendTimeStamp": sendTimeStamp, "senderAccount": senderAccount,
+                             "senderNickname": senderNickname, "fileName": fileName}.__str__()
+            for client in self.clientLsEachChannel[channelIndex]:
+                if client != tcpSkt:
+                    client.write(broadcastFile.encode('utf-8'))
+
         try:
             print("---------------------------------------------------------------------")
             self.db.ping(True)
             tcpSkt = self.sender()
             msg = tcpSkt.read(BUFF_SIZE).decode('utf-8')
+            # print(1)
             requestDict = ast.literal_eval(msg)
+            # print(2)
             assert type(requestDict) == dict
             requestType = requestDict["type"]
 
@@ -105,14 +125,26 @@ class MyServer(QTcpServer):
                 senderNickname = requestDict['senderNickname']
                 handle_sendHtmlMsg()
 
+            elif requestType == 'sendFile':
+                channelIndex = requestDict['channelIndex']
+                senderAccount = requestDict['senderAccount']
+                sendTimeStamp = requestDict['sendTimeStamp']
+                senderNickname = requestDict['senderNickname']
+                fileSize = requestDict['fileSize']
+                fileName = requestDict['fileName']
+                tcpSkt.readyRead.disconnect(self.handle_recv_msg)
+                print("解绑")
+                handle_sendFile()
+                tcpSkt.readyRead.connect(self.handle_recv_msg)
+
         except Exception as e:
             print(e)
         finally:
-            print("---------------------------------------------------------------------")
+            pass
 
 
 if __name__ == '__main__':
-    BUFF_SIZE = 1024 * 1024
+    BUFF_SIZE = 1024 * 1024 * 1024
     app = QApplication(sys.argv)
     server = MyServer()
     app.exec()

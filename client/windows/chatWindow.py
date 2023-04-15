@@ -5,11 +5,12 @@ import time
 import urllib.request
 import sys
 
+from PyQt5.QtCore import QFileInfo, QFile, QDataStream, QIODevice
 from PyQt5.QtGui import QTextCursor
 
 sys.path.append(r'D:\Study\计算机网络\socket_learning')
 from PyQt5.QtNetwork import QTcpSocket
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QFileDialog
 
 from client.ui_py.ui_chat import Ui_chatWindow
 from client.utils.models import Channel
@@ -27,10 +28,11 @@ class ChatWindow(QWidget, Ui_chatWindow):
         self.tcpSkt.connectToHost('localhost', 5000)
         self.load_chat_logs()  # 加载聊天记录
         self.pushButton_send.clicked.connect(self.send_message)
+        self.pushButton_sendFile.clicked.connect(self.send_file)
 
     def get_user_from_parent(self, user):
         self.user = user
-        print("I have got the user info from my parent.")
+        self.setWindowTitle(f"{self.user.nickname} - {self.channel.channelName}")
 
     def load_chat_logs(self):  # 加载聊天记录
         self.tcpSkt.write({"type": "chatLogs", "channelIndex": self.channel.channelIndex}.__str__().encode('utf-8'))
@@ -72,10 +74,39 @@ class ChatWindow(QWidget, Ui_chatWindow):
         except Exception as e:
             print(e)
 
+    def send_file(self):
+        openedFileName, fileType = QFileDialog.getOpenFileName(self, "选择文件")
+        print(f"openedFileName:{openedFileName}")
+        if openedFileName != "":
+            openedFileSize = QFileInfo(openedFileName).size()
+            print(f"fileSize:{openedFileSize}")
+            if openedFileSize <= 1024 * 1024:
+                openedFile = QFile(openedFileName)
+                openedFile.open(QIODevice.ReadOnly)
+                sendTimeStamp = time.time()
+                self.tcpSkt.write(
+                    {"type": "sendFile", "fileName": openedFileName.split("/")[-1],
+                     "channelIndex": self.channel.channelIndex, "senderAccount": self.user.account,
+                     'sendTimeStamp': sendTimeStamp, 'senderNickname': self.user.nickname,
+                     'fileSize': openedFileSize}.__str__().encode('utf-8'))
+                fileData = openedFile.read(openedFileSize)
+                self.tcpSkt.waitForBytesWritten()
+                self.tcpSkt.write(fileData)
+                print(len(fileData))
+                # print(str(fileData))
+                # self.tcpSkt.write(openedFile.read(openedFileSize))
+                # savedFileName = QFileDialog.getSaveFileName(self, "保存文件", openedFileName.split('/')[-1])[0]
+                # print(savedFileName)
+                # savedFile = QFile(savedFileName)
+                # savedFile.open(QIODevice.WriteOnly)
+                # savedFile.write(openedFile.read(fileSize))
+                # savedFile.close()
+                # openedFile.close()
+
     def recv_msg(self):
         try:
             tcpSkt = self.sender()
-            data = tcpSkt.read(1024 * 1024).decode('utf-8')
+            data = tcpSkt.read(1024 * 1024 * 1024).decode('utf-8')
             recvDict = ast.literal_eval(data)
             resType = recvDict["type"]
             if resType == "chatLogs":
