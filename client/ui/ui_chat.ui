@@ -33,26 +33,12 @@ background-color:rgb(255, 170, 0);
     </widget>
    </item>
    <item>
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QTextBrowser" name="textBrowser_show">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>1</verstretch>
       </sizepolicy>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -75,9 +61,9 @@ background-color:rgb(255, 170, 0);
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_sendFile">
+      <widget class="QPushButton" name="pushButton_sendImg">
        <property name="text">
-        <string>选择文件</string>
+        <string>选择图片</string>
        </property>
       </widget>
      </item>
