@@ -39,8 +39,4 @@ if __name__ == '__main__':
     # cursor.close()
     # print(mysql.ping(True))
     # mysql.close()
-    with urllib.request.urlopen(url='file:///C:\\Users\\Zrp\\Documents\\Tencent Files\\1346650303\\Image\\Group2\\{Z\\_0\\{'
-                                    'Z_0EM8~4AYLL1@P{''`N(JJ3.jpg') as f:
-        imgByte = f.read()
-        imgBase64 = base64.b64encode(imgByte).decode('utf-8')
-        print(imgBase64)
+    pass
