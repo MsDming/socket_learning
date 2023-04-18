@@ -13,7 +13,7 @@ from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QWidget, QFileDialog
 
 from client.ui_py.ui_chat import Ui_chatWindow
-from client.utils.models import Channel
+from client.utils.models import Channel, File_QListWidgetItem
 
 
 class ChatWindow(QWidget, Ui_chatWindow):
@@ -29,6 +29,7 @@ class ChatWindow(QWidget, Ui_chatWindow):
         self.load_chat_logs()  # 加载聊天记录
         self.pushButton_send.clicked.connect(self.send_message)
         self.pushButton_sendFile.clicked.connect(self.send_file)
+        self.listWidget_file.doubleClicked.connect(self.download_file)
 
     def get_user_from_parent(self, user):
         self.user = user
@@ -103,6 +104,31 @@ class ChatWindow(QWidget, Ui_chatWindow):
                 # savedFile.close()
                 # openedFile.close()
 
+    def download_file(self):
+        try:
+            fileName = self.listWidget_file.selectedItems()[0].fileName
+            fileSize = self.listWidget_file.selectedItems()[0].fileSize
+            print(fileName)
+            savedFileName = QFileDialog.getSaveFileName(self, "保存文件", fileName)[0]
+            if savedFileName != '':
+                file2Save = QFile(savedFileName)
+                file2Save.open(QIODevice.WriteOnly)
+                self.tcpSkt.readyRead.disconnect()
+                downloadFileRequest = {"type": "downloadFile", "channelIndex": self.channel.channelIndex,
+                                       "fileName": fileName}.__str__()
+                self.tcpSkt.write(downloadFileRequest.encode('utf-8'))
+                self.tcpSkt.waitForReadyRead()
+                fileData = self.tcpSkt.read(1024 * 1024)
+                while len(fileData) < fileSize:
+                    self.tcpSkt.waitForReadyRead()
+                    fileData += self.tcpSkt.read(1024 * 1024)
+                file2Save.write(fileData)
+                file2Save.close()
+        except Exception as e:
+            print(e)
+        finally:
+            self.tcpSkt.readyRead.connect(self.recv_msg)
+
     def recv_msg(self):
         try:
             tcpSkt = self.sender()
@@ -111,6 +137,12 @@ class ChatWindow(QWidget, Ui_chatWindow):
             resType = recvDict["type"]
             if resType == "chatLogs":
                 pass
+
+            elif resType == "broadcastFile":
+                item = File_QListWidgetItem(recvDict['fileName'], recvDict['fileSize'])
+                self.listWidget_file.addItem(item)
+                self.listWidget_file.setItemWidget(item, item.widget)
+
             elif resType == "broadcastMsg":
                 sendTimeStamp = recvDict["sendTimeStamp"]
                 senderNickname = recvDict['senderNickname']

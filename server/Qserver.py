@@ -1,10 +1,11 @@
 import ast
-import base64
 import sys
+
 import pymysql
-from PyQt5.QtCore import QFile, QIODevice
+from PyQt5.QtCore import QFile, QIODevice, QFileInfo
 from PyQt5.QtNetwork import QTcpServer, QHostAddress, QTcpSocket
 from PyQt5.QtWidgets import QApplication
+
 from client.utils.models import Channel
 
 
@@ -70,7 +71,6 @@ class MyServer(QTcpServer):
         def handle_sendHtmlMsg():
             msgToBroadcast = {"type": "broadcastMsg", 'sendTimeStamp': sendTimeStamp, 'senderAccount': senderAccount,
                               'inputHtmlMsg': inputHtmlMsg, 'senderNickname': senderNickname}.__str__()
-            print(f'msgToBroadcast:{msgToBroadcast}')
             for i in self.clientLsEachChannel[channelIndex]:
                 if i != tcpSkt:
                     i.write(msgToBroadcast.encode('utf-8'))
@@ -86,10 +86,18 @@ class MyServer(QTcpServer):
             savedFile.write(fileData)
             savedFile.close()
             broadcastFile = {"type": "broadcastFile", "sendTimeStamp": sendTimeStamp, "senderAccount": senderAccount,
-                             "senderNickname": senderNickname, "fileName": fileName}.__str__()
+                             "senderNickname": senderNickname, "fileName": fileName, "fileSize": fileSize}.__str__()
             for client in self.clientLsEachChannel[channelIndex]:
-                if client != tcpSkt:
-                    client.write(broadcastFile.encode('utf-8'))
+                client.write(broadcastFile.encode('utf-8'))
+
+        def handle_downloadFile():
+            file = QFile(f"./tempFiles/channel{channelIndex}/{fileName}")
+            file.open(QIODevice.ReadOnly)
+            tcpSkt.waitForBytesWritten()
+            fileData = file.read(QFileInfo(file).size())
+            print(fileData)
+            tcpSkt.write(fileData)
+            file.close()
 
         try:
             print("---------------------------------------------------------------------")
@@ -136,6 +144,11 @@ class MyServer(QTcpServer):
                 print("解绑")
                 handle_sendFile()
                 tcpSkt.readyRead.connect(self.handle_recv_msg)
+
+            elif requestType == 'downloadFile':
+                channelIndex = requestDict['channelIndex']
+                fileName = requestDict['fileName']
+                handle_downloadFile()
 
         except Exception as e:
             print(e)

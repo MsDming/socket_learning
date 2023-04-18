@@ -37,13 +37,14 @@ class Channel_QListWidgetItem(QListWidgetItem):
         self.setSizeHint(self.widget.sizeHint())
 
 
-class html_QListWidgetItem(QListWidgetItem):
-    def __init__(self, htmlMsg: str):
+class File_QListWidgetItem(QListWidgetItem):
+    def __init__(self, fileName: str, fileSize: int):
         super().__init__()
-        self.widget = QWidget(self)
-        vbox = QVBoxLayout()
-        textBrowser = QTextBrowser(self.widget)
-        textBrowser.textCursor().insertHtml(htmlMsg)
-        vbox.addWidget(textBrowser)
-        self.widget.setLayout(vbox)
+        self.fileSize = fileSize
+        self.fileName = fileName
+        self.widget = QWidget()
+        hbox = QVBoxLayout(self.widget)
+        lable_fileName = QLabel(fileName)
+        hbox.addWidget(lable_fileName)
+        self.widget.setLayout(hbox)
         self.setSizeHint(self.widget.sizeHint())

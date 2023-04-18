@@ -1,6 +1,9 @@
 import ast
 import sys
 
+import qdarkstyle
+from qdarkstyle import LightPalette
+
 sys.path.append(r'D:\Study\计算机网络\socket_learning')
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtNetwork import QTcpSocket
@@ -55,5 +58,6 @@ if __name__ == '__main__':
     PORT = 5000
     ADDR = (IP, PORT)
     app = QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5', palette=LightPalette()))
     loginMw = LoginMw()
     app.exec()
