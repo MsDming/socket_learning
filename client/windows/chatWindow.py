@@ -39,7 +39,6 @@ class ChatWindow(QWidget, Ui_chatWindow):
         for i in range(chatNums):
             self.tcpSkt.waitForReadyRead()
             chatLogDict = ast.literal_eval(self.tcpSkt.read(1024 * 1024).decode('utf-8'))
-            print(chatLogDict)
             self.textBrowser_show.textCursor().insertText(
                 "[{} {}]".format(chatLogDict['senderNickname'],
                                  time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(chatLogDict['sendTimeStamp']))))
@@ -60,7 +59,6 @@ class ChatWindow(QWidget, Ui_chatWindow):
         image_data_list = []
         for match in re.finditer(r'<img[^>]*src="([^"]+)"[^>]*>', htmlMsg):
             image_file_path = match.group(1)
-            print(f"Image path:{image_file_path}")
             img_format = image_file_path.split('.')[-1]
             with urllib.request.urlopen(url=image_file_path) as f:
                 image_data = f.read()
@@ -73,7 +71,6 @@ class ChatWindow(QWidget, Ui_chatWindow):
             requestData = {"type": "sendHtmlMsg", "channelIndex": self.channel.channelIndex,
                            "senderAccount": self.user.account, 'inputHtmlMsg': htmlMsg,
                            'sendTimeStamp': sendTimeStamp, 'senderNickname': self.user.nickname}.__str__()
-            print(f"requestData: {requestData}")
             self.tcpSkt.write(requestData.encode('utf-8'))
             self.textBrowser_show.textCursor().insertHtml(htmlMsg)
             self.textBrowser_show.textCursor().insertHtml('<br><br>')
@@ -87,7 +84,6 @@ class ChatWindow(QWidget, Ui_chatWindow):
         print(f"openedFileName:{openedFileName}")
         if openedFileName != "":
             openedFileSize = QFileInfo(openedFileName).size()
-            print(f"fileSize:{openedFileSize}")
             if openedFileSize <= 1024 * 1024:
                 openedFile = QFile(openedFileName)
                 openedFile.open(QIODevice.ReadOnly)
@@ -101,15 +97,6 @@ class ChatWindow(QWidget, Ui_chatWindow):
                 self.tcpSkt.waitForBytesWritten()
                 self.tcpSkt.write(fileData)
                 print(len(fileData))
-                # print(str(fileData))
-                # self.tcpSkt.write(openedFile.read(openedFileSize))
-                # savedFileName = QFileDialog.getSaveFileName(self, "保存文件", openedFileName.split('/')[-1])[0]
-                # print(savedFileName)
-                # savedFile = QFile(savedFileName)
-                # savedFile.open(QIODevice.WriteOnly)
-                # savedFile.write(openedFile.read(fileSize))
-                # savedFile.close()
-                # openedFile.close()
 
     def download_file(self):
         try:
