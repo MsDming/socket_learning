@@ -8,20 +8,21 @@ from PyQt5.QtCore import QFileInfo, QFile, QIODevice
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtNetwork import QTcpSocket, QHostAddress
 from PyQt5.QtWidgets import QWidget, QFileDialog
-from ui_py.ui_chat import Ui_chatWindow
-from utils.models import Channel, File_QListWidgetItem
+from client.ui_py.ui_chat import Ui_chatWindow
+from client.utils.models import Channel, File_QListWidgetItem
 
 
 class ChatWindow(QWidget, Ui_chatWindow):
-    def __init__(self, channel: Channel):
+    def __init__(self, channel: Channel, serverIP: str):
         super().__init__()
         self.user = None
         self.setupUi(self)
+        self.serverIP = serverIP
         self.channel = channel
         self.setWindowTitle(self.channel.channelName)
         self.label_channelName.setText(channel.channelName)
         self.tcpSkt = QTcpSocket(self)
-        self.tcpSkt.connectToHost(QHostAddress('10.81.29.253'), 5000)
+        self.tcpSkt.connectToHost(QHostAddress(f'{self.serverIP}'), 5000)
         self.load_chat_logs()  # 加载聊天记录
         self.pushButton_send.clicked.connect(self.send_message)
         self.pushButton_sendFile.clicked.connect(self.send_file)
@@ -32,6 +33,7 @@ class ChatWindow(QWidget, Ui_chatWindow):
         self.setWindowTitle(f"{self.user.nickname} - {self.channel.channelName}")
 
     def load_chat_logs(self):  # 加载聊天记录
+        self.tcpSkt.waitForBytesWritten()
         self.tcpSkt.write({"type": "chatLogs", "channelIndex": self.channel.channelIndex}.__str__().encode('utf-8'))
         # TODO:init chat logs
         self.tcpSkt.waitForReadyRead()

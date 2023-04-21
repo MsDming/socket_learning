@@ -1,19 +1,19 @@
-import sys
 import ast
 
-from PyQt5.QtCore import pyqtSignal, QThreadPool
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtNetwork import QTcpSocket, QHostAddress
-from PyQt5.QtWidgets import QApplication, QMainWindow, QAbstractItemView
-from ui_py.ui_hall import Ui_hall
-from utils.models import Channel, Channel_QListWidgetItem, User
-from windows.chatWindow import ChatWindow
+from PyQt5.QtWidgets import QMainWindow, QAbstractItemView
+
+from client.ui_py.ui_hall import Ui_hall
+from client.utils.models import Channel, Channel_QListWidgetItem, User
+from client.windows.chatWindow import ChatWindow
 
 
 class HallFrm(QMainWindow, Ui_hall):
     signalUser = pyqtSignal(User)
 
-    def __init__(self):
+    def __init__(self, IP: str):
         super().__init__()
         self.setupUi(self)
         self.listWidget_channels.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -23,9 +23,11 @@ class HallFrm(QMainWindow, Ui_hall):
         self.user = None
         self.setupUi(self)
         self.tcpSkt = QTcpSocket(parent=self)
-        self.tcpSkt.connectToHost(QHostAddress('10.81.29.253'), 5000)
+        self.serverIP=IP
+        self.tcpSkt.connectToHost(QHostAddress(f'{self.serverIP}'), 5000)
         data = {'type': 'channels'}
         data = data.__str__()
+        self.tcpSkt.waitForBytesWritten()
         self.tcpSkt.write(data.encode('utf-8'))
         print('发送获取channels请求')
         self.tcpSkt.waitForReadyRead()
@@ -51,7 +53,6 @@ class HallFrm(QMainWindow, Ui_hall):
         self.tcpSkt.disconnectFromHost()
 
     def open_chat_window(self):
-
         if self.chatWindowsList[self.listWidget_channels.selectedItems()[0].channel.channelIndex] is not None:
             self.chatWindowsList[self.listWidget_channels.selectedItems()[0].channel.channelIndex].show()
             self.chatWindowsList[self.listWidget_channels.selectedItems()[0].channel.channelIndex].activateWindow()
@@ -59,7 +60,7 @@ class HallFrm(QMainWindow, Ui_hall):
         channel = self.listWidget_channels.selectedItems()[0].channel
         assert type(channel) == Channel
         print("Channel:{}".format(channel.to_dict()))
-        chatWindow = ChatWindow(channel)
+        chatWindow = ChatWindow(channel,self.serverIP)
         self.signalUser.connect(chatWindow.get_user_from_parent)
         self.signalUser.emit(self.user)
         assert type(channel.channelIndex) == int
@@ -75,10 +76,3 @@ class HallFrm(QMainWindow, Ui_hall):
     def closeEvent(self, a0: QCloseEvent) -> None:
         del self.chatWindowsList
         self.tcpSkt.deleteLater()
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    hallFrm = HallFrm()
-    hallFrm.show()
-    app.exec()

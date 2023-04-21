@@ -19,7 +19,7 @@ class MyServer(QTcpServer):
         self.load_channels_list()
         self.clientLsEachChannel = [[] for i in range(len(self.channelList) + 1)]  # 按频道存储每个来自chatWindow的socket
         self.redisConnLs = [Redis('47.113.229.66', 6379, db=i) for i in range(0, len(self.channelList) + 1, 1)]
-        self.listen(QHostAddress('10.81.29.253'), port=5000)
+        self.listen(QHostAddress(IP), port=5000)
 
     def incomingConnection(self, socketDescriptor):  # 收到新的连接请求
         try:
@@ -167,6 +167,7 @@ class MyServer(QTcpServer):
 
 
 if __name__ == '__main__':
+    IP = '192.168.31.159'
     BUFF_SIZE = 1024 * 1024 * 1024
     app = QApplication(sys.argv)
     server = MyServer()
