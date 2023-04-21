@@ -5,6 +5,7 @@ import pymysql
 from PyQt5.QtCore import QFile, QIODevice, QFileInfo
 from PyQt5.QtNetwork import QTcpServer, QHostAddress, QTcpSocket
 from PyQt5.QtWidgets import QApplication
+from redis.client import Redis
 
 from client.utils.models import Channel
 
@@ -17,7 +18,8 @@ class MyServer(QTcpServer):
         self.allClientSkts = []  # 存储所有连接到的socket，为了保持socket不被释放
         self.load_channels_list()
         self.clientLsEachChannel = [[] for i in range(len(self.channelList) + 1)]  # 按频道存储每个来自chatWindow的socket
-        self.listen(QHostAddress.LocalHost, port=5000)
+        self.redisConnLs = [Redis('47.113.229.66', 6379, db=i) for i in range(0, len(self.channelList) + 1, 1)]
+        self.listen(QHostAddress('10.81.29.253'), port=5000)
 
     def incomingConnection(self, socketDescriptor):  # 收到新的连接请求
         try:
@@ -71,6 +73,7 @@ class MyServer(QTcpServer):
         def handle_sendHtmlMsg():
             msgToBroadcast = {"type": "broadcastMsg", 'sendTimeStamp': sendTimeStamp, 'senderAccount': senderAccount,
                               'inputHtmlMsg': inputHtmlMsg, 'senderNickname': senderNickname}.__str__()
+            self.redisConnLs[channelIndex].set(name=sendTimeStamp, value=msgToBroadcast)
             for i in self.clientLsEachChannel[channelIndex]:
                 if i != tcpSkt:
                     i.write(msgToBroadcast.encode('utf-8'))
@@ -99,6 +102,16 @@ class MyServer(QTcpServer):
             tcpSkt.write(fileData)
             file.close()
 
+        def handle_chatLogs():
+            if tcpSkt not in self.clientLsEachChannel[channelIndex]:
+                self.clientLsEachChannel[channelIndex].append(tcpSkt)
+            chatLogsLs = self.redisConnLs[channelIndex].keys('*')
+            chatLogsLs.sort()
+            tcpSkt.write({"type": "chatLogs", "nums": chatLogsLs.__len__()}.__str__().encode('utf-8'))
+            for i in chatLogsLs:
+                tcpSkt.waitForBytesWritten()
+                tcpSkt.write(self.redisConnLs[channelIndex].get(i))
+
         try:
             print("---------------------------------------------------------------------")
             self.db.ping(True)
@@ -120,10 +133,7 @@ class MyServer(QTcpServer):
 
             elif requestType == 'chatLogs':
                 channelIndex = requestDict["channelIndex"]
-                if tcpSkt not in self.clientLsEachChannel[channelIndex]:
-                    self.clientLsEachChannel[channelIndex].append(tcpSkt)
-                tcpSkt.write({"type": "chatLogs"}.__str__().encode('utf-8'))
-                pass
+                handle_chatLogs()
 
             elif requestType == 'sendHtmlMsg':
                 channelIndex = requestDict['channelIndex']

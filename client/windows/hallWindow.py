@@ -1,15 +1,13 @@
 import sys
-
-sys.path.append(r'D:\Study\计算机网络\socket_learning')
-from PyQt5.QtCore import pyqtSignal, QThreadPool
-from PyQt5.QtGui import QCloseEvent
-from PyQt5.QtNetwork import QTcpSocket
-from PyQt5.QtWidgets import QApplication, QMainWindow, QAbstractItemView
-from client.ui_py.ui_hall import Ui_hall
 import ast
 
-from client.utils.models import Channel, Channel_QListWidgetItem, User
-from client.windows.chatWindow import ChatWindow
+from PyQt5.QtCore import pyqtSignal, QThreadPool
+from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtNetwork import QTcpSocket, QHostAddress
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAbstractItemView
+from ui_py.ui_hall import Ui_hall
+from utils.models import Channel, Channel_QListWidgetItem, User
+from windows.chatWindow import ChatWindow
 
 
 class HallFrm(QMainWindow, Ui_hall):
@@ -25,7 +23,7 @@ class HallFrm(QMainWindow, Ui_hall):
         self.user = None
         self.setupUi(self)
         self.tcpSkt = QTcpSocket(parent=self)
-        self.tcpSkt.connectToHost('localhost', 5000)
+        self.tcpSkt.connectToHost(QHostAddress('10.81.29.253'), 5000)
         data = {'type': 'channels'}
         data = data.__str__()
         self.tcpSkt.write(data.encode('utf-8'))

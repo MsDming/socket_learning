@@ -4,24 +4,23 @@ import sys
 import qdarkstyle
 from qdarkstyle import LightPalette
 
-sys.path.append(r'D:\Study\计算机网络\socket_learning')
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtNetwork import QTcpSocket
+from PyQt5.QtNetwork import QTcpSocket, QHostAddress
 from PyQt5.QtWidgets import QApplication, QWidget
-from client.windows.hallWindow import HallFrm
-from client.ui_py.ui_login import Ui_login
-from client.utils.models import User
+from ui_py import ui_login
+from utils import models
+from windows.hallWindow import HallFrm
 
 
-class LoginMw(QWidget, Ui_login):
-    signalUser = pyqtSignal(User)
+class LoginMw(QWidget, ui_login.Ui_login):
+    signalUser = pyqtSignal(models.User)
 
     def __init__(self):
         super().__init__()
         self.tcpSkt = None
         self.setupUi(self)
         self.tcpSkt = QTcpSocket(self)
-        self.tcpSkt.connectToHost('localhost', 5000)
+        self.tcpSkt.connectToHost(QHostAddress('10.81.29.253'), 5000)
         self.pushButton_login.clicked.connect(self.login)
         self.pushButton_register.clicked.connect(self.register)
         self.show()
@@ -40,7 +39,7 @@ class LoginMw(QWidget, Ui_login):
             global hallWindow
             hallWindow = HallFrm()
             self.signalUser.connect(hallWindow.get_user_from_parent)
-            self.signalUser.emit(User(account, password, loginResponse["nickname"]))  # 把User信息传递给子页面
+            self.signalUser.emit(models.User(account, password, loginResponse["nickname"]))  # 把User信息传递给子页面
             hallWindow.show()
             self.tcpSkt.disconnectFromHost()
             self.close()

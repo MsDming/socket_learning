@@ -3,17 +3,13 @@ import base64
 import re
 import time
 import urllib.request
-import sys
 
-from PyQt5.QtCore import QFileInfo, QFile, QDataStream, QIODevice
+from PyQt5.QtCore import QFileInfo, QFile, QIODevice
 from PyQt5.QtGui import QTextCursor
-
-sys.path.append(r'D:\Study\计算机网络\socket_learning')
-from PyQt5.QtNetwork import QTcpSocket
+from PyQt5.QtNetwork import QTcpSocket, QHostAddress
 from PyQt5.QtWidgets import QWidget, QFileDialog
-
-from client.ui_py.ui_chat import Ui_chatWindow
-from client.utils.models import Channel, File_QListWidgetItem
+from ui_py.ui_chat import Ui_chatWindow
+from utils.models import Channel, File_QListWidgetItem
 
 
 class ChatWindow(QWidget, Ui_chatWindow):
@@ -25,7 +21,7 @@ class ChatWindow(QWidget, Ui_chatWindow):
         self.setWindowTitle(self.channel.channelName)
         self.label_channelName.setText(channel.channelName)
         self.tcpSkt = QTcpSocket(self)
-        self.tcpSkt.connectToHost('localhost', 5000)
+        self.tcpSkt.connectToHost(QHostAddress('10.81.29.253'), 5000)
         self.load_chat_logs()  # 加载聊天记录
         self.pushButton_send.clicked.connect(self.send_message)
         self.pushButton_sendFile.clicked.connect(self.send_file)
@@ -37,9 +33,20 @@ class ChatWindow(QWidget, Ui_chatWindow):
 
     def load_chat_logs(self):  # 加载聊天记录
         self.tcpSkt.write({"type": "chatLogs", "channelIndex": self.channel.channelIndex}.__str__().encode('utf-8'))
-        self.tcpSkt.readyRead.connect(self.recv_msg)
         # TODO:init chat logs
-        pass
+        self.tcpSkt.waitForReadyRead()
+        chatNums = ast.literal_eval(self.tcpSkt.read(1024 * 1024).decode('utf-8'))["nums"]
+        for i in range(chatNums):
+            self.tcpSkt.waitForReadyRead()
+            chatLogDict = ast.literal_eval(self.tcpSkt.read(1024 * 1024).decode('utf-8'))
+            print(chatLogDict)
+            self.textBrowser_show.textCursor().insertText(
+                "[{} {}]".format(chatLogDict['senderNickname'],
+                                 time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(chatLogDict['sendTimeStamp']))))
+            self.textBrowser_show.textCursor().insertHtml('<br>')
+            self.textBrowser_show.textCursor().insertHtml(chatLogDict["inputHtmlMsg"])
+            self.textBrowser_show.textCursor().insertHtml('<br><br>')
+        self.tcpSkt.readyRead.connect(self.recv_msg)
 
     def send_message(self):
         # 获取时间戳
@@ -150,7 +157,7 @@ class ChatWindow(QWidget, Ui_chatWindow):
                 self.textBrowser_show.textCursor().insertText(
                     "[{} {}]\n".format(senderNickname,
                                        time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(sendTimeStamp))))
-                self.textBrowser_show.insertHtml(htmlMsg)
-                self.textBrowser_show.insertHtml("<br><br>")
+                self.textBrowser_show.textCursor().insertHtml(htmlMsg)
+                self.textBrowser_show.textCursor().insertHtml("<br><br>")
         except Exception as e:
             print(e)
