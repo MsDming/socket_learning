@@ -33,9 +33,9 @@ class ChatWindow(QWidget, Ui_chatWindow):
         self.setWindowTitle(f"{self.user.nickname} - {self.channel.channelName}")
 
     def load_chat_logs(self):  # 加载聊天记录
+        self.textBrowser_show.moveCursor(QTextCursor.End)
         self.tcpSkt.waitForBytesWritten()
         self.tcpSkt.write({"type": "chatLogs", "channelIndex": self.channel.channelIndex}.__str__().encode('utf-8'))
-        # TODO:init chat logs
         self.tcpSkt.waitForReadyRead()
         chatNums = ast.literal_eval(self.tcpSkt.read(1024 * 1024).decode('utf-8'))["nums"]
         for i in range(chatNums):
@@ -52,6 +52,7 @@ class ChatWindow(QWidget, Ui_chatWindow):
     def send_message(self):
         # 获取时间戳
         sendTimeStamp = time.time()
+        self.textBrowser_show.moveCursor(QTextCursor.End)
         self.textBrowser_show.textCursor().insertText(
             "[{} {}]\n".format(self.user.nickname, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(sendTimeStamp))))
         # 内容转html
@@ -74,10 +75,11 @@ class ChatWindow(QWidget, Ui_chatWindow):
                            "senderAccount": self.user.account, 'inputHtmlMsg': htmlMsg,
                            'sendTimeStamp': sendTimeStamp, 'senderNickname': self.user.nickname}.__str__()
             self.tcpSkt.write(requestData.encode('utf-8'))
+            self.textBrowser_show.moveCursor(QTextCursor.End)
             self.textBrowser_show.textCursor().insertHtml(htmlMsg)
             self.textBrowser_show.textCursor().insertHtml('<br><br>')
             self.textEdit_input.clear()
-            self.textBrowser_show.moveCursor(QTextCursor.End)
+
         except Exception as e:
             print(e)
 
@@ -143,6 +145,7 @@ class ChatWindow(QWidget, Ui_chatWindow):
                 sendTimeStamp = recvDict["sendTimeStamp"]
                 senderNickname = recvDict['senderNickname']
                 htmlMsg = recvDict['inputHtmlMsg']
+                self.textBrowser_show.moveCursor(QTextCursor.End)
                 self.textBrowser_show.textCursor().insertText(
                     "[{} {}]\n".format(senderNickname,
                                        time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(sendTimeStamp))))

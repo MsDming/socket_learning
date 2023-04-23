@@ -167,7 +167,7 @@ class MyServer(QTcpServer):
 
 
 if __name__ == '__main__':
-    IP = '192.168.31.159'
+    IP = '10.81.29.253'
     BUFF_SIZE = 1024 * 1024 * 1024
     app = QApplication(sys.argv)
     server = MyServer()

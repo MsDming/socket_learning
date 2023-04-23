@@ -8,7 +8,7 @@ from pathlib import Path
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]
 sys.path.append(str(ROOT))
-print(ROOT)
+from client.windows.registerWindow import RegisterMw
 from client.ui_py.ui_login import Ui_login
 from client.utils import models
 from client.windows.hallWindow import HallFrm
@@ -56,4 +56,5 @@ class LoginMw(QWidget, Ui_login):
             self.label_loginFailed.setText("账户或密码输入错误，请重试")
 
     def register(self):
-        pass
+        return
+        self.registerWidget = RegisterMw(IP=self.ip)
