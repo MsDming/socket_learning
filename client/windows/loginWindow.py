@@ -44,6 +44,7 @@ class LoginMw(QWidget, Ui_login):
         loginSuccess = loginResponse["loginSuccess"]
         assert type(loginSuccess) == bool
         if loginSuccess:
+            self.label_loginFailed.clear()
             global hallWindow
             hallWindow = HallFrm(self.lineEdit_IP.text())
             self.signalUser.connect(hallWindow.get_user_from_parent)
@@ -54,7 +55,9 @@ class LoginMw(QWidget, Ui_login):
             self.deleteLater()
         else:
             self.label_loginFailed.setText("账户或密码输入错误，请重试")
+            self.label_loginFailed.setStyleSheet("""QLabel{color:red;}""")
 
     def register(self):
-        return
-        self.registerWidget = RegisterMw(IP=self.ip)
+        self.ip = self.lineEdit_IP.text()
+        self.registerWindow = RegisterMw(IP=self.ip)
+        self.registerWindow.show()

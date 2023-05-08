@@ -1,12 +1,10 @@
 import ast
 import sys
-
 import pymysql
 from PyQt5.QtCore import QFile, QIODevice, QFileInfo
 from PyQt5.QtNetwork import QTcpServer, QHostAddress, QTcpSocket
 from PyQt5.QtWidgets import QApplication
 from redis.client import Redis
-
 from client.utils.models import Channel
 
 
@@ -70,6 +68,22 @@ class MyServer(QTcpServer):
                 tcpSkt.write({'loginSuccess': True, 'nickname': nickname}.__str__().encode('utf-8'))
                 print("用户 {} 登录".format(account))
 
+        def handle_register():
+            with self.db.cursor() as cursor:
+                sql_search_maxAccount = """select max(account) from user"""
+                cursor.execute(sql_search_maxAccount)
+                maxAccount = cursor.fetchone()[0]
+                try:
+                    sql_insert_user = f"""insert user values({maxAccount + 1},'{password}','{nickname}')"""
+                    cursor.execute(sql_insert_user)
+                    self.db.commit()
+                except:
+                    self.db.rollback()
+                    tcpSkt.write({"registerSuccess": False}.__str__().encode('utf-8'))
+                    return
+                tcpSkt.write({"registerSuccess": True, "account": maxAccount + 1}.__str__().encode('utf-8'))
+                return
+
         def handle_sendHtmlMsg():
             msgToBroadcast = {"type": "broadcastMsg", 'sendTimeStamp': sendTimeStamp, 'senderAccount': senderAccount,
                               'inputHtmlMsg': inputHtmlMsg, 'senderNickname': senderNickname}.__str__()
@@ -131,6 +145,10 @@ class MyServer(QTcpServer):
                 account, password = requestDict['account'], requestDict['password']
                 handle_login()
 
+            elif requestType == 'register':
+                nickname, password = requestDict['nickName'], requestDict['password']
+                handle_register()
+
             elif requestType == 'chatLogs':
                 channelIndex = requestDict["channelIndex"]
                 handle_chatLogs()
@@ -162,12 +180,10 @@ class MyServer(QTcpServer):
 
         except Exception as e:
             print(e)
-        finally:
-            pass
 
 
 if __name__ == '__main__':
-    IP = '10.81.29.253'
+    IP = '127.0.0.1'
     BUFF_SIZE = 1024 * 1024 * 1024
     app = QApplication(sys.argv)
     server = MyServer()
